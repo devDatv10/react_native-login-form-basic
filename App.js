@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
   Button,
+  Alert
 } from "react-native";
 import { useState, useEffect } from "react";
 
@@ -59,6 +60,14 @@ export default function App() {
 
     const newPost = await response.json();
     setPostList([newPost, ...postList]);
+    Alert.alert('Notification', 'Add data succes', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {text: 'OK', onPress: () => console.log('OK Pressed'), style: 'ok'},
+    ]);
     setPostTitle("");
     setPostBody("");
     setIsPosting(false);
