@@ -1,85 +1,78 @@
 import {
   View,
   Text,
-  ImageBackground,
-  ScrollView,
-  Button,
-  Modal,
-  StatusBar,
-  StyleSheet,
-  Alert,
-  Dimensions,
-  useWindowDimensions,
-  Platform,
   SafeAreaView,
-  TextInput,
-  Switch,
-  Image,
-  KeyboardAvoidingView,
+  FlatList,
+  StyleSheet,
+  StatusBar,
+  ActivityIndicator
 } from "react-native";
-import Box from "./components/Box";
-import CustomFunction from "./components/Component";
 import { useState, useEffect } from "react";
-const imageLogo = require("./assets/adaptive-icon.png");
 
 export default function App() {
-  const [name, setName] = useState();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
+  const [postList, setPostList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const validateForm = () => {
-    let errors = {};
-
-    if (!email) errors.email = "Email is required";
-    if (!password) errors.password = "Password is required";
-
-    setErrors(errors);
-
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (validateForm()) {
-      console.log("Submitted", email, password);
-      setEmail("");
-      setPassword("");
-      setErrors({});
+  const fetchData = async (limit = 10) => {
+    try {
+      const response = await fetch(
+        `https://jsonplaceholder.typicode.com/posts?_limit=${limit}`
+      );
+      const data = await response.json();
+      setPostList(data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
   };
 
+  const handleRefreshing = () => {
+    setRefreshing(true);
+    fetchData(20);
+    setRefreshing(false);
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if(isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000fff">
+        </ActivityIndicator>
+      </SafeAreaView>
+    )
+  }
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior="padding"
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-    >
-      <View style={styles.form}>
-        <Image source={require("./assets/icon.png")} style={styles.image} />
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your Email"
-          value={email}
-          onChangeText={setEmail}
-        ></TextInput>
-        {errors.email ? (
-          <Text style={styles.errorsText}>{errors.email}</Text>
-        ) : null}
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        ></TextInput>
-        {errors.password ? (
-          <Text style={styles.errorsText}>{errors.password}</Text>
-        ) : null}
-        <Button style={styles.button} title="Login" onPress={handleSubmit} />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.listContainer}>
+        {postList.length > 0 ? (
+          <FlatList
+            data={postList}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.card}>
+                <Text style={styles.titleText}>{item.title}</Text>
+                <Text style={styles.bodyText}>{item.body}</Text>
+              </View>
+            )}
+            ItemSeparatorComponent={() => (
+              <View style={{height: 16}}></View>
+        )}
+            ListEmptyComponent={<Text>No Post NotFound</Text>}
+            ListHeaderComponent={<Text style={styles.headerText}> Header Post</Text>}
+            ListFooterComponent={<Text style={styles.footerText}> Bottom Post</Text>}
+            refreshing={refreshing}
+            onRefresh={handleRefreshing}
+          />
+        ) : (
+          <Text style={styles.noDataText}>No data available</Text>
+        )}
       </View>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -87,55 +80,54 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    paddingHorizontal: 20,
+    paddingTop: StatusBar.currentHeight,
   },
 
-  form: {
+  listContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+
+  card: {
     backgroundColor: "#fff",
-    shadowColor: "#333",
-    borderRadius: 10,
-    padding: 20,
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-  },
-
-  image: {
-    height: 200,
-    width: 200,
-    marginBottom: 50,
-    alignSelf: "center",
-  },
-
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-    fontWeight: "bold",
-  },
-
-  input: {
-    height: 40,
-    padding: 10,
-    borderColor: "gray",
+    padding: 16,
+    borderRadius: 8,
     borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 15,
   },
 
-  errorsText: {
-    color: "red",
-    marginBottom: 15,
-    fontSize: 16
+  titleText: {
+    fontSize: 30,
   },
 
-  // button: {
-  //   height: 30,
-  //   width: 30,
-  //   backgroundColor: "green"
-  // }
+  bodyText: {
+    fontSize: 24,
+    color: "#666666",
+  },
+
+  noDataText: {
+    fontSize: 20,
+    textAlign: "center",
+    marginTop: 20,
+  },
+
+  headerText: {
+    fontSize: 30,
+    textAlign: 'center',
+    marginBottom: 5
+  },
+
+  footerText: {
+    fontSize: 30,
+    textAlign: 'center',
+    marginTop: 5
+  },
+
+
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    paddingTop: StatusBar.currentHeight,
+    alignItems: "center",
+    justifyContent: "center",
+  }
 });
