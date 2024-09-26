@@ -1,18 +1,42 @@
-import 'react-native-gesture-handler';
 import { NavigationContainer } from "@react-navigation/native";
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import DashboardScreen from './screens/DashboardScreen';
-import SettingScreen from './screens/SettingsScreen';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import CartScreen from "./screens/CartScreen";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import HomeScreen from "./screens/HomeScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 
-const Drawer = createDrawerNavigator();
+const Tab = createBottomTabNavigator();
 
 export default function App() {
-    return (
-        <NavigationContainer>
-            <Drawer.Navigator>
-                <Drawer.Screen name="Dashboard" component={DashboardScreen} />
-                <Drawer.Screen name="Settings" component={SettingScreen} />
-            </Drawer.Navigator>
-        </NavigationContainer>
-    )
+  return (
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            tabBarLabel: "Trang chủ",
+            tabBarIcon: ({ color }) => <Ionicons name="person" size={20} color={color} />,
+            tabBarBadge: 3,
+          }}
+        />
+        <Tab.Screen
+          name="Cart"
+          component={CartScreen}
+          options={{
+            tabBarLabel: "Giỏ hàng",
+            tabBarIcon: () => <Ionicons name="cart" size={20} />,
+          }}
+        />
+        <Tab.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{
+            tabBarLabel: "Cài đặt",
+            tabBarIcon: () => <Ionicons name="settings" size={20} />,
+          }}
+        />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
 }
